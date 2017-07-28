@@ -54,3 +54,6 @@ ENV/
 node_modules
 
 /app/admin/ui/public
+
+.cache
+.coverage

@@ -17,3 +17,6 @@ docs:
 .PHONY: dist
 dist: frontend
 	./setup.py sdist
+
+test:
+	pytest --cov=mr_provisioner -s
