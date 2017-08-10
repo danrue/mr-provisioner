@@ -1,3 +1,4 @@
+import logging
 import os
 import pytest
 import tempfile
@@ -9,6 +10,7 @@ def app(request):
     #print(temp_db_location)
 
     app = create_app(config_path="tests/config.ini")
+    app.logger.setLevel(logging.DEBUG)
 
     with app.app_context():
         #init_db()
@@ -30,45 +32,48 @@ def client(request, app):
 
     return client
 
-def test_redirect(client):
+def test_slash(client):
     rv = client.get('/')
     assert rv._status == "302 FOUND"
     assert rv.location == "http://localhost/admin/"
+    rv1 = client.get('/admin')
+    assert rv1._status == "301 MOVED PERMANENTLY"
+    assert rv1.location == 'http://localhost/admin/'
+    rv2 = client.get('/admin/')
+    assert rv2._status == '200 OK'
+    assert b'mr-provisioner' in rv2.data
 
-#
-#
-#def login(client, username, password):
-#    return client.post('/login', data=dict(
-#        username=username,
-#        password=password
-#    ), follow_redirects=True)
-#
-#
-#def logout(client):
-#    return client.get('/logout', follow_redirects=True)
-#
-#
-#def test_empty_db(client):
-#    """Start with a blank database."""
-#    rv = client.get('/')
-#    assert b'No entries here so far' in rv.data
-#
-#
-#def test_login_logout(client, app):
+
+
+
+def login(client, username, password):
+    return client.post('/admin/login', data=dict(
+        username=username,
+        password=password
+    ), follow_redirects=True)
+
+def logout(client):
+    return client.get('/admin/logout', follow_redirects=True)
+
+#def test_login_logout(client):
 #    """Make sure login and logout works"""
-#    rv = login(client, app.config['USERNAME'],
-#               app.config['PASSWORD'])
+#    username = "admin"
+#    password = "default"
+#    rv = login(client, username, password)
+#    import pdb; pdb.set_trace()
+
+#    import pdb; pdb.set_trace()
 #    assert b'You were logged in' in rv.data
 #    rv = logout(client)
 #    assert b'You were logged out' in rv.data
-#    rv = login(client,app.config['USERNAME'] + 'x',
-#               app.config['PASSWORD'])
+#    rv = login(client, username + 'x',
+#               password)
 #    assert b'Invalid username' in rv.data
-#    rv = login(client, app.config['USERNAME'],
-#               app.config['PASSWORD'] + 'x')
+#    rv = login(client, username,
+#               password + 'x')
 #    assert b'Invalid password' in rv.data
-#
-#
+
+
 #def test_messages(client, app):
 #    """Test that messages work"""
 #    login(client, app.config['USERNAME'],
